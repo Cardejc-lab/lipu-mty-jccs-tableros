@@ -36,10 +36,10 @@ Requisitos del script (una sola vez): `py -m pip install pandas pyodbc openpyxl`
 | Tabla | Origen | Regla de carga |
 |---|---|---|
 | `base_viajes_hoy` | TABLA DRIVES HOY (CARGAR BASES PRINCIPALES.accdb) | Reemplazo completo en cada carga (solo lo que va del día) |
-| `base_viajes`, `base_eventos` | TABLA DE VIAJES TL / TABLA DE EVENTOS TL | Pendiente: ventana de 2 meses a detalle + histórico resumido. Al recargar `base_viajes`, `num_economico` debe tomar «Núm Económico» (unidad) y «Núm Eco» va en `id_viaje` |
+| `base_viajes`, `base_eventos` | TABLA DE VIAJES TL / TABLA DE EVENTOS TL | Ventana de 62 días a detalle (página Cargas). Lo anterior pasa a `resumen_viajes_dia` / `resumen_eventos_dia`. `num_economico` = «Núm Económico», `id_viaje` = «Núm Eco» |
 | `catalogo_operadores`, `catalogo_vehiculos`, `catalogo_eventos` | Catálogos | Pendiente de actualizar |
 
-Para cargar viajes de hoy: `py exportar_tabla_access.py` → portal → **Cargas de datos** → «Cargar archivo» con `tabla_drives_hoy.csv.gz` → «Confirmar carga».
+Para actualizar: `py exportar_tabla_access.py` (exporta las tres tablas) → portal → **Cargas de datos** → en cada tabla «Cargar archivo» → «Confirmar carga». Viajes y eventos reemplazan los días del archivo y cierran la ventana de 62 días.
 
 **Llaves comunes:** `num_economico` = número de unidad («Núm Económico» del Access) · `nomina` / `id_colaborador` = nómina del operador · planta = grupo de vehículos.
 
