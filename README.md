@@ -31,7 +31,9 @@ Requisitos del script (una sola vez): `py -m pip install pandas pyodbc openpyxl`
 
 ## Usuarios
 
-- Alta: Supabase → proyecto **prueba_desarrollos** → Authentication → Users → **Add user → Send invitation**. La persona recibe un correo y crea su contraseña en el portal.
+- Alta: Supabase → proyecto **prueba_desarrollos** → Authentication → Users → **Add user → Create new user**: correo, contraseña temporal y **Auto Confirm User** activado. Entrega la contraseña temporal en persona; la persona la cambia en el portal con **Cambiar contraseña**.
+- El correo de Supabase sin SMTP propio solo envía a miembros del proyecto (2 correos por hora), por eso las invitaciones y «¿Olvidaste tu contraseña?» no llegan a otros usuarios. Para habilitarlas, configura un SMTP gratuito (por ejemplo Brevo) en Authentication → Emails → SMTP Settings.
+- Baja: Authentication → Users → menú del usuario → **Delete user** (deja de entrar de inmediato).
 - Los registros abiertos están desactivados: nadie entra sin invitación.
 - Administradores (pueden publicar datos): lista `admins` en `assets/lipu-auth.js` y reglas *Admin …* del almacén `datos` en Supabase. Hay que cambiar ambas.
 
