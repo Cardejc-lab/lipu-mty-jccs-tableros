@@ -20,6 +20,8 @@ Access / Excel (OneDrive) ──► scripts/exportar_cruces.py ──► archivo
 | `cruces/` | Tablero de cruces ferroviarios (ejecutivo, no altos, semanal con días comparables, mapa, por revisar, detalle) |
 | `cruces/basemap.json` | Base del mapa: municipios y AGEB urbanas (INEGI), carreteras, vías del tren y ríos (Natural Earth). Datos públicos. |
 | `scripts/exportar_cruces.py` | Genera los datos del tablero desde el Access y los Excel, en OneDrive |
+| `scripts/exportar_tabla_access.py` | Exporta cualquier tabla del Access a `.csv.gz` (por defecto TABLA DRIVES HOY) |
+| `cargas/` | Página de administración: carga a Supabase las tablas exportadas del Access |
 
 ## Actualizar los datos de cruces
 
@@ -28,6 +30,16 @@ Access / Excel (OneDrive) ──► scripts/exportar_cruces.py ──► archivo
 3. Abre el tablero con tu cuenta de administrador → **Cargar archivo** → elige los dos archivos → **Publicar para todos**.
 
 Requisitos del script (una sola vez): `py -m pip install pandas pyodbc openpyxl` y el controlador *Microsoft Access Database Engine* de 64 bits.
+
+## Tablas en Supabase (proyecto prueba_desarrollos)
+
+| Tabla | Origen | Regla de carga |
+|---|---|---|
+| `base_viajes_hoy` | TABLA DRIVES HOY (CARGAR BASES PRINCIPALES.accdb) | Reemplazo completo en cada carga (solo lo que va del día) |
+| `base_viajes`, `base_eventos` | TABLA DE VIAJES TL / TABLA DE EVENTOS TL | Pendiente: ventana de 2 meses a detalle + histórico resumido |
+| `catalogo_operadores`, `catalogo_vehiculos`, `catalogo_eventos` | Catálogos | Pendiente de actualizar |
+
+Para cargar viajes de hoy: `py exportar_tabla_access.py` → portal → **Cargas de datos** → «Cargar archivo» con `tabla_drives_hoy.csv.gz` → «Confirmar carga».
 
 ## Usuarios
 

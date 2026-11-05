@@ -114,6 +114,11 @@ footer{background:var(--foot);color:var(--brand);text-align:center;font-weight:7
       <div class="tile soon"><b>Salidas de carril</b><span>Eventos LDW por operador, ruta y horario.</span><em>Próximamente</em></div>
     </div>
   </section>
+  <section class="area" id="adminArea" hidden><h3>Administración</h3>
+    <div class="grid">
+      <a class="tile" href="cargas/"><b>Cargas de datos</b><span>Sube a Supabase las tablas exportadas del Access (viajes de hoy y siguientes).</span><em>Solo administradores</em></a>
+    </div>
+  </section>
   <section class="area"><h3>Logística</h3>
     <div class="grid">
       <div class="tile soon"><b>Flota y carta operativa</b><span>Unidades, asignación y cobertura de contrato.</span><em>Próximamente</em></div>
@@ -145,6 +150,7 @@ function show(state, u){
   $("#auth").hidden = state === "app"; $("#app").hidden = state !== "app"; $("#userBox").hidden = state !== "app";
   $("#fLogin").hidden = state !== "login"; $("#fPass").hidden = state !== "pass";
   if (u) $("#who").textContent = u.email;
+  if (state === "app") LIPU.isAdmin().then(x => { $("#adminArea").hidden = !x; });
   $("#pCancel").hidden = !(state === "pass" && !needPass);
   if (state === "pass" && !needPass) $("#pTxt").textContent = "Escribe tu nueva contraseña (mínimo 8 caracteres). Úsala desde tu próximo inicio de sesión.";
   else if (state === "pass") $("#pTxt").textContent = hashType === "invite" ? `Bienvenido${u ? ", " + u.email : ""}. Crea la contraseña con la que entrarás al portal (mínimo 8 caracteres).` : "Escribe tu nueva contraseña (mínimo 8 caracteres).";
