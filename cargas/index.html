@@ -61,8 +61,33 @@ const T = {
       ["kms_viaje", "Kilometraje", "num"], ["tiempo_manejo", "Tiempo Total de Manejo", "hms"], ["combustible", "Combustible Utilizado", "num"], ["rendimiento_kml", "Rendimiento (Km/L)", "num"],
       ["litros_100km", "Litros por 100 km", "num"], ["ralenti", "Ralentí", "hms"], ["kms_total", "Kilometraje Total", "num"], ["hrs_motor", "Hrs de Motor", "num"]
     ]
+  },
+  base_viajes: {
+    titulo: "Viajes (2 meses a detalle)", fuente: "TABLA DE VIAJES TL · CARGAR BASES PRINCIPALES.accdb", archivo: "tabla_de_viajes_tl.csv.gz", modo: "ventana", fecha: "inicio_recorrido",
+    map: [
+      ["id_viaje", "Núm Eco", "id"], ["num_economico", "Núm Económico", "id"], ["vin", "Número Serie (VIN)", "txt"], ["grupo_vehiculos", "Grupo de vehículos", "txt"],
+      ["nombre_conductor", "Nombre del conductor", "txt"], ["codigo_dmas", "Código DMAS", "id"], ["grupo_conductores", "Grupo de conductores", "txt"], ["id_colaborador", "Id Colaborador", "id"],
+      ["inicio_recorrido", "Inicio Recorrido", "ts"], ["ubicacion_inicial", "Ubicación Inicial", "txt"], ["lat_inicial", "Start latitud", "num"], ["lon_inicial", "Empiezo de longitud", "num"],
+      ["fin_recorrido", "Fin Recorrido", "ts"], ["ubicacion_final", "Ubicación Final", "txt"], ["lat_final", "Latitud Final*", "num"], ["lon_final", "Longitud Final", "num"],
+      ["kms_viaje", "Kilometraje", "num"], ["tiempo_manejo", "Tiempo Total de Manejo", "hms"], ["combustible", "Combustible Utilizado", "num"], ["rendimiento_kml", "Rendimiento (Km/L)", "num"],
+      ["litros_100km", "Litros por 100 km", "num"], ["ralenti", "Ralentí", "hms"], ["kms_total", "Kilometraje Total", "num"], ["hrs_motor", "Hrs de Motor", "num"],
+      ["fecha_carga", "Fecha de Carga", "ts"]
+    ]
+  },
+  base_eventos: {
+    titulo: "Eventos (2 meses a detalle)", fuente: "TABLA DE EVENTOS TL · CARGAR BASES PRINCIPALES.accdb", archivo: "tabla_de_eventos_tl.csv.gz", modo: "ventana", fecha: "hora_inicio",
+    nota: "Clasificación, severidad y peso se completan con catalogo_eventos; la nómina con catalogo_operadores (por nombre).",
+    map: [
+      ["nombre_conductor", "Nombre del conductor", "txt"], ["grupo_conductores", "Grupo de conductores", "txt"], ["num_economico", "Núm Económico", "id"], ["vin", "Número Serie (VIN)", "txt"],
+      ["grupo_vehiculos", "Grupo de vehículos", "txt"], ["hora_inicio", "Hora Inicio", "ts"], ["ubicacion_inicial", "Ubicación Inicial", "txt"], ["lat_inicial", "Start latitud", "num"],
+      ["lon_inicial", "Empiezo de longitud", "num"], ["direccion_grados", "DIRECCIÓN*", "id"], ["cat_evento", "Categoria del Evento", "txt"], ["tipo_evento", "Tipo de Evento", "txt"],
+      ["hora_final", "Hora Final*", "ts"], ["ubicacion_final", "Ubicación Final", "txt"], ["lat_final", "Latitud Final*", "num"], ["lon_final", "Longitud Final", "num"],
+      ["kms_evento", "Kilometraje", "num"], ["vel_evento", "Velocidad", "num"], ["vel_maxima", "Velocidad Máxima*", "num"], ["duracion_evento", "Duración", "hms"],
+      ["obs_evento", "Observaciones del Evento*", "txt"], ["fecha_carga", "Fecha de Carga", "ts"]
+    ]
   }
 };
+const VENTANA_DIAS = 62;   /* días de detalle que se conservan en base_viajes y base_eventos */
 const $ = s => document.querySelector(s);
 const nf = new Intl.NumberFormat("es-MX");
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
@@ -115,36 +140,69 @@ async function render(){
 let TARGET = null;
 document.addEventListener("click", e => { const b = e.target.closest("[data-load]"); if (!b) return; TARGET = b.dataset.load; $("#fileIn").click(); });
 $("#fileIn").addEventListener("change", async e => { const file = e.target.files[0]; e.target.value = ""; if (!file || !TARGET) return; await prepare(TARGET, file); });
+/* Archivos grandes: se guarda el texto por líneas y cada lote se convierte justo antes de subirlo */
+function splitLine(line){ return line.indexOf('"') < 0 ? line.split(",") : parseCSV(line)[0] || []; }
+function makeRow(cfg, ix, cells){ const o = {}; for (const [dst, , t] of cfg.map) o[dst] = CONV[t](cells[ix[dst]]); return o; }
+const tick = () => new Promise(r => setTimeout(r, 0));
 async function prepare(tabla, file){
   const cfg = T[tabla], box = $("#x_" + tabla); box.innerHTML = `<div class="msg warn">Leyendo ${esc(file.name)}…</div>`;
   try {
-    const rows = parseCSV(await readFile(file)); const h = rows[0].map(s => s.trim());
+    const text = await readFile(file);
+    const lines = text.split(/\r?\n/); while (lines.length && !lines[lines.length - 1]) lines.pop();
+    const h = splitLine(lines[0]).map(s => s.trim());
     const miss = cfg.map.filter(([, src]) => !h.includes(src)).map(m => m[1]);
     if (miss.length) throw new Error(`El archivo no tiene estas columnas: ${miss.join(", ")}. ¿Es el archivo correcto (${cfg.archivo})?`);
     const ix = Object.fromEntries(cfg.map.map(([dst, src]) => [dst, h.indexOf(src)]));
-    const data = rows.slice(1).map(r => Object.fromEntries(cfg.map.map(([dst, , t]) => [dst, CONV[t](r[ix[dst]])])));
-    const fechas = data.map(r => r[cfg.fecha]).filter(Boolean).sort();
-    box.innerHTML = `<div class="msg ok"><b>${nf.format(data.length)} filas</b> listas · ${fechas.length ? `del ${fdt(fechas[0])} al ${fdt(fechas[fechas.length-1])}` : "sin fechas"}. ${cfg.modo === "reemplazo" ? "Se borrará lo que hay hoy en la tabla y se cargará este archivo." : ""}</div>
-      <div class="tw"><table><thead><tr>${cfg.map.slice(0, 9).map(m => `<th>${esc(m[0])}</th>`).join("")}</tr></thead><tbody>${data.slice(0, 5).map(r => `<tr>${cfg.map.slice(0, 9).map(m => `<td>${esc(r[m[0]] ?? "–")}</td>`).join("")}</tr>`).join("")}</tbody></table></div>
+    /* fechas mínima y máxima del archivo */
+    const fi = ix[cfg.fecha]; let fmin = null, fmax = null;
+    for (let i = 1; i < lines.length; i++) { const f = CONV.ts(splitLine(lines[i])[fi]); if (!f) continue; if (!fmin || f < fmin) fmin = f; if (!fmax || f > fmax) fmax = f; if (i % 50000 === 0) await tick(); }
+    const n = lines.length - 1, prev = lines.slice(1, 6).map(l => makeRow(cfg, ix, splitLine(l)));
+    const plan = cfg.modo === "reemplazo" ? "Se borrará lo que hay hoy en la tabla y se cargará este archivo."
+      : `Se reemplazarán en Supabase los datos desde el ${fdt(fmin).slice(0, 10)}; lo anterior a ${VENTANA_DIAS} días se pasa al histórico resumido.`;
+    box.innerHTML = `<div class="msg ok"><b>${nf.format(n)} filas</b> listas · ${fmin ? `del ${fdt(fmin)} al ${fdt(fmax)}` : "sin fechas"}. ${plan}${cfg.nota ? " " + esc(cfg.nota) : ""}</div>
+      <div class="tw"><table><thead><tr>${cfg.map.slice(0, 9).map(m => `<th>${esc(m[0])}</th>`).join("")}</tr></thead><tbody>${prev.map(r => `<tr>${cfg.map.slice(0, 9).map(m => `<td>${esc(r[m[0]] ?? "–")}</td>`).join("")}</tr>`).join("")}</tbody></table></div>
       <div class="row"><button class="btn" type="button" id="go_${tabla}">Confirmar carga</button><button class="btn sec" type="button" id="no_${tabla}">Cancelar</button></div>`;
     $("#no_" + tabla).onclick = () => box.innerHTML = "";
-    $("#go_" + tabla).onclick = () => upload(tabla, data);
+    $("#go_" + tabla).onclick = () => upload(tabla, { lines, ix, n, fmin });
   } catch (err) { box.innerHTML = `<div class="msg err">${esc(err.message)}</div>`; }
 }
-async function upload(tabla, data){
+async function upload(tabla, job){
   const cfg = T[tabla], sb = LIPU.sb(), box = $("#x_" + tabla), bar = $("#b_" + tabla);
-  $("#p_" + tabla).hidden = false; bar.style.width = "2%";
-  box.innerHTML = `<div class="msg warn">Cargando… no cierres esta página.</div>`;
+  $("#p_" + tabla).hidden = false; bar.style.width = "1%";
+  const t0 = Date.now(), status = t => box.innerHTML = `<div class="msg warn">${t} No cierres esta página.</div>`;
+  let i = 1;
   try {
+    status("Preparando la tabla…");
     if (cfg.modo === "reemplazo") { const { error } = await sb.from(tabla).delete().gte("id", 0); if (error) throw error; }
-    const N = 500;
-    for (let i = 0; i < data.length; i += N) {
-      const { error } = await sb.from(tabla).insert(data.slice(i, i + N)); if (error) throw error;
-      bar.style.width = `${Math.min(100, (i + N) / data.length * 100)}%`;
+    else if (job.fmin) {   /* borrar por día desde la fecha inicial del archivo para no duplicar */
+      const d0 = new Date(job.fmin.slice(0, 10) + "T00:00:00Z"), hoy = new Date(Date.now() + 864e5);
+      for (let d = d0; d <= hoy; d = new Date(d.getTime() + 864e5)) {
+        const a = d.toISOString().slice(0, 10), b = new Date(d.getTime() + 864e5).toISOString().slice(0, 10);
+        const { error } = await sb.from(tabla).delete().gte(cfg.fecha, a).lt(cfg.fecha, b); if (error) throw error;
+        status(`Limpiando el ${a}…`);
+      }
     }
-    box.innerHTML = `<div class="msg ok">Carga terminada: ${nf.format(data.length)} filas en <code>${tabla}</code>.</div>`;
+    const N = 1000;
+    for (; i < job.lines.length; i += N) {
+      const batch = []; for (let j = i; j < Math.min(i + N, job.lines.length); j++) batch.push(makeRow(cfg, job.ix, splitLine(job.lines[j])));
+      let error = null;
+      for (let k = 0; k < 3; k++) { ({ error } = await sb.from(tabla).insert(batch)); if (!error) break; await new Promise(r => setTimeout(r, 1500 * (k + 1))); }
+      if (error) throw error;
+      const done = Math.min(i + N - 1, job.n), pct = done / job.n, seg = (Date.now() - t0) / 1000;
+      bar.style.width = `${Math.max(1, pct * 100)}%`;
+      status(`Cargando ${nf.format(done)} de ${nf.format(job.n)} filas (${Math.round(pct * 100)}%) · faltan ~${Math.ceil(seg / pct * (1 - pct) / 60)} min.`);
+    }
+    let extra = "";
+    if (cfg.modo === "ventana") {
+      status("Pasando al histórico lo anterior a la ventana…");
+      const { data, error } = await sb.rpc("lipu_cerrar_ventana", { dias: VENTANA_DIAS });
+      extra = error ? ` No se pudo cerrar la ventana: ${esc(error.message)}.` : ` Histórico: ${(data || []).map(r => `${r.tabla} ${nf.format(r.filas_borradas)} filas resumidas`).join(" · ")}.`;
+    }
+    box.innerHTML = `<div class="msg ok">Carga terminada: ${nf.format(job.n)} filas en <code>${tabla}</code> en ${Math.round((Date.now() - t0) / 60000)} min.${extra}</div>`;
     render();
-  } catch (err) { box.innerHTML = `<div class="msg err">La carga se detuvo: ${esc(err.message || err)}. ${cfg.modo === "reemplazo" ? "Vuelve a cargar el archivo para completarla." : ""}</div>`; }
+  } catch (err) {
+    box.innerHTML = `<div class="msg err">La carga se detuvo en la fila ${nf.format(i)}: ${esc(err.message || err)}. Vuelve a cargar el archivo: la carga reemplaza los mismos días, así que no se duplica.</div>`;
+  }
 }
 (async () => {
   const u = await LIPU.user();
