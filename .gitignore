@@ -1,0 +1,11 @@
+__pycache__/
+*.pyc
+.DS_Store
+Thumbs.db
+~$*
+# Datos operativos: nunca al repositorio
+*.csv
+*.csv.gz
+*.accdb
+*.xlsx
+cruces/ubicaciones.json
