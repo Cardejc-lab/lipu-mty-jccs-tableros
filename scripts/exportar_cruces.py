@@ -31,7 +31,7 @@ import pyodbc
 # ---------------- Rutas (ajusta si cambian) ----------------
 BASE = Path(r"C:\Users\carde\OneDrive - Traxión\USER CARDEJC\01 Principal")
 ACCESS = BASE / r"00 DESARROLLOS\BASE DE CRUCES FERROVIARIOS.accdb"
-TABLA = "CRUCES DE FERROCARRIL"
+TABLA = "CRUCES DE FERROCARIL"   # así está escrito en el Access (con una sola R)
 PLANTILLA = BASE / r"02 ARCHIVOS PARA REPORTE\TABLAS PARA REPORTES.xlsx"
 UBICACIONES = BASE / r"CRUCES DE FERROCARRIL\Ubicacion de los Puntos de Cruce.xlsx"
 SALIDA = BASE / r"00 DESARROLLOS\DATOS TABLEROS\cruces"
@@ -68,7 +68,16 @@ def a_segundos(v):
 
 def leer_access():
     con = pyodbc.connect(r"DRIVER={Microsoft Access Driver (*.mdb, *.accdb)};DBQ=" + str(ACCESS))
-    d = pd.read_sql(f"SELECT * FROM [{TABLA}]", con)
+    cur = con.cursor()
+    tablas = [r.table_name for r in cur.tables(tableType="TABLE")]
+    norm = lambda s: re.sub(r"[^A-Z]", "", s.upper()).replace("RR", "R")
+    tabla = next((x for x in tablas if x == TABLA), None) or next((x for x in tablas if norm(x) == norm(TABLA)), None)
+    if not tabla:
+        con.close()
+        raise RuntimeError(f"No encontré la tabla «{TABLA}» en el Access. Tablas disponibles: {', '.join(tablas)}")
+    cur.execute(f"SELECT * FROM [{tabla}]")
+    cols = [c[0] for c in cur.description]
+    d = pd.DataFrame.from_records(cur.fetchall(), columns=cols)
     con.close()
     return d
 
@@ -145,4 +154,7 @@ if __name__ == "__main__":
     try:
         main()
     except pyodbc.Error as e:
-        sys.exit(f"No se pudo abrir el Access. ¿Está instalado el controlador de Access de 64 bits y el archivo cerrado?\n{e}")
+        print(f"No se pudo leer el Access. ¿Está instalado el controlador de Access de 64 bits?\n{e}")
+    except Exception as e:
+        print(f"Error: {e}")
+    input("\nPresiona Enter para cerrar…")   # deja la ventana abierta al ejecutarlo con doble clic
