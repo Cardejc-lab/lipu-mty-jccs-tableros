@@ -43,9 +43,11 @@ code{font-size:12px;background:var(--line);padding:1px 5px;border-radius:4px}
 <header class="top"><h1>Cargas de datos <small>· Lipu Monterrey</small></h1><span id="who"></span><a href="../">Volver al portal</a></header>
 <main>
   <div class="msg err" id="gate" hidden></div>
+  <div id="cruces"></div>
   <div id="cards"></div>
 </main>
 <input type="file" id="fileIn" accept=".csv,.gz" hidden>
+<input type="file" id="fileCr" accept=".csv,.gz,.json" multiple hidden>
 <script>
 "use strict";
 /* Tablas que se cargan desde los archivos exportados del Access (exportar_tabla_access.py).
@@ -204,11 +206,78 @@ async function upload(tabla, job){
     box.innerHTML = `<div class="msg err">La carga se detuvo en la fila ${nf.format(i)}: ${esc(err.message || err)}. Vuelve a cargar el archivo: la carga reemplaza los mismos días, así que no se duplica.</div>`;
   }
 }
+
+/* ───────── Cruces ferroviarios: archivos (no tablas) que se publican en el almacén privado «datos/cruces/» ─────────
+   Los genera exportar_cruces.py: cruces_lipu_mty.csv.gz y ubicaciones.json. Es lo mismo que «Publicar para todos» del tablero. */
+const CR = {
+  datos: { path: "cruces/cruces_lipu_mty.csv.gz", etiqueta: "Cruces (cruces_lipu_mty.csv.gz)", tipo: "application/gzip" },
+  geo:   { path: "cruces/ubicaciones.json",       etiqueta: "Ubicaciones (ubicaciones.json)",   tipo: "application/json" }
+};
+const fkb = n => n == null ? "–" : n >= 1048576 ? (n / 1048576).toFixed(1) + " MB" : Math.max(1, Math.round(n / 1024)) + " KB";
+let CR_JOB = {};
+async function renderCruces(){
+  $("#cruces").innerHTML = `<section class="card" id="c_cruces">
+    <h2>Cruces ferroviarios <code>datos/cruces/</code></h2>
+    <p>Fuente: <code>exportar_cruces.py</code> → archivos <code>cruces_lipu_mty.csv.gz</code> y <code>ubicaciones.json</code>. Se publican como archivos en el almacén privado (no son una tabla): cada carga reemplaza la anterior y el tablero de cruces la lee al abrirse.</p>
+    <div class="meta" id="m_cruces"><div><span>Estado</span><b>Consultando…</b></div></div>
+    <div class="row"><button class="btn" type="button" id="btnCr">⇪ Cargar archivos</button><span class="muted">Elige los dos archivos juntos (o solo uno).</span></div>
+    <div id="x_cruces"></div>
+  </section>`;
+  $("#btnCr").onclick = () => $("#fileCr").click();
+  const m = [];
+  for (const k of Object.keys(CR)) {
+    let f = null, err = null; try { f = await LIPU.info(CR[k].path); } catch (e) { err = e; }
+    m.push(`<div><span>${esc(CR[k].etiqueta)}</span><b>${f ? fdt(f.updated_at || f.created_at) : (err ? "Error" : "Sin publicar")}</b>${f && f.metadata ? `<span>${fkb(f.metadata.size)}</span>` : ""}</div>`);
+  }
+  $("#m_cruces").innerHTML = m.join("");
+}
+$("#fileCr").addEventListener("change", async e => { const fs = [...e.target.files]; e.target.value = ""; if (fs.length) await prepareCruces(fs); });
+async function prepareCruces(fs){
+  const box = $("#x_cruces"); box.innerHTML = `<div class="msg warn">Leyendo archivos…</div>`;
+  try {
+    const js = fs.find(f => /\.json$/i.test(f.name)), dat = fs.find(f => !/\.json$/i.test(f.name));
+    const lineas = [], job = {};
+    if (dat) {
+      const text = await readFile(dat), rows = text.split(/\r?\n/).filter(Boolean);
+      if (rows.length < 2 || splitLine(rows[0]).length < 3) throw new Error(`${dat.name} no parece el archivo de cruces (cruces_lipu_mty.csv.gz).`);
+      job.datos = dat; lineas.push(`<b>${esc(dat.name)}</b>: ${nf.format(rows.length - 1)} filas · ${fkb(dat.size)} → <code>${CR.datos.path}</code>`);
+    }
+    if (js) {
+      let j; try { j = JSON.parse(await js.text()); } catch (err) { throw new Error(`${js.name} no es un JSON válido: ${err.message}`); }
+      if (!j || typeof j !== "object" || Array.isArray(j)) throw new Error(`${js.name} no tiene el formato de ubicaciones esperado.`);
+      job.geo = js; lineas.push(`<b>${esc(js.name)}</b>: ${nf.format(Object.keys(j).length)} ubicaciones → <code>${CR.geo.path}</code>`);
+    }
+    CR_JOB = job;
+    box.innerHTML = `<div class="msg ok">${lineas.join("<br>")}<br>Se reemplazará lo publicado y todos los usuarios verán estos datos al abrir el tablero de cruces.</div>
+      <div class="row"><button class="btn" type="button" id="goCr">Confirmar carga</button><button class="btn sec" type="button" id="noCr">Cancelar</button></div>`;
+    $("#noCr").onclick = () => { CR_JOB = {}; box.innerHTML = ""; };
+    $("#goCr").onclick = uploadCruces;
+  } catch (err) { box.innerHTML = `<div class="msg err">${esc(err.message)}</div>`; }
+}
+async function uploadCruces(){
+  const box = $("#x_cruces"), hechos = [];
+  $("#goCr").disabled = true; $("#noCr").disabled = true;
+  try {
+    for (const k of ["datos", "geo"]) { const f = CR_JOB[k]; if (!f) continue;
+      box.innerHTML = `<div class="msg warn">Publicando ${esc(f.name)}… No cierres esta página.</div>`;
+      let blob = f;
+      if (k === "datos" && !/\.gz$/i.test(f.name)) {
+        if (typeof CompressionStream === "undefined") throw new Error("Este navegador no puede comprimir; carga el archivo .csv.gz.");
+        blob = await new Response(f.stream().pipeThrough(new CompressionStream("gzip"))).blob();
+      }
+      await LIPU.upload(CR[k].path, blob, CR[k].tipo); hechos.push(f.name);
+    }
+    CR_JOB = {}; box.innerHTML = `<div class="msg ok">Publicado: ${hechos.map(esc).join(", ")}. El tablero de cruces ya lee los datos nuevos.</div>`; renderCruces();
+  } catch (err) {
+    box.innerHTML = `<div class="msg err">${hechos.length ? `Se publicó ${hechos.map(esc).join(", ")}, pero se detuvo después: ` : ""}${esc(err.msg || err.message || String(err))} Vuelve a cargar los archivos.</div>`;
+  }
+}
 (async () => {
   const u = await LIPU.user();
   if (!u) { $("#gate").hidden = false; $("#gate").innerHTML = `Inicia sesión en el <a href="../">portal</a> para usar esta página.`; return; }
   $("#who").textContent = u.email;
   if (!(await LIPU.isAdmin())) { $("#gate").hidden = false; $("#gate").textContent = "Solo los administradores pueden cargar datos."; return; }
+  renderCruces();
   render();
 })();
 </script>
