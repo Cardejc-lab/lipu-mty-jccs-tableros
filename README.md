@@ -16,6 +16,7 @@ Access / Excel (OneDrive) ──► scripts/exportar_cruces.py ──► archivo
 | Ruta | Qué es |
 |---|---|
 | `index.html` | Portal: inicio de sesión y menú de tableros |
+| `assets/tema-lipu/` | Tema verde Lipu (CSS), logos (`logo-lipu.png`, `logo-derecho.png`, `marca-agua.png`) y `plantilla.html` para tableros nuevos |
 | `assets/lipu-auth.js` | Sesión compartida (Supabase Auth) y acceso al almacén privado |
 | `cruces/` | Tablero de cruces ferroviarios (ejecutivo, no altos, semanal con días comparables, mapa, por revisar, detalle) |
 | `cruces/basemap.json` | Base del mapa: municipios y AGEB urbanas (INEGI), carreteras, vías del tren y ríos (Natural Earth). Datos públicos. |

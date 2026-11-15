@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Nuevo tablero · Lipu Mty</title>
+<!-- Plantilla de tablero con el tema verde Lipu Monterrey.
+     Para un tablero nuevo: copia este archivo a una carpeta nueva (p. ej. alarmas/index.html),
+     cambia el título y llena las secciones marcadas con «AQUÍ». Las rutas ../ asumen que el tablero
+     vive en una carpeta al lado de assets/. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap">
+<link rel="stylesheet" href="../assets/tema-lipu/lipu-tema.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/dist/umd/supabase.js"></script>
+<script src="../assets/lipu-auth.js"></script>
+</head>
+<body>
+<div class="loader" id="loader" hidden><div class="spin"></div><div>Cargando…</div></div>
+<div class="wm" aria-hidden="true"></div>
+
+<header class="top">
+  <button class="burger" id="burger" type="button" aria-label="Mostrar u ocultar filtros">☰</button>
+  <img class="logoL" src="../assets/tema-lipu/logo-lipu.png" alt="LiPU by Traxión">
+  <div class="ttl"><h1>Nombre del tablero</h1><small>Lipu Monterrey · Área</small></div>
+  <span class="badge"><span class="dot"></span><span id="corteTxt">Datos al –</span></span>
+  <button class="tbtn" type="button" id="btnReload">↻ Recargar</button>
+  <button class="tbtn green" type="button" id="btnExcel">⬇ Excel</button>
+  <img class="logoR" src="../assets/tema-lipu/logo-derecho.png" alt="">
+</header>
+
+<div class="layout" id="layout">
+  <aside class="side" aria-label="Filtros">
+    <h2>Filtros</h2>
+    <button class="clr" type="button">↺ Limpiar filtros</button>
+    <div class="fs"><label for="fQ">Búsqueda libre</label><input id="fQ" type="search" placeholder="Unidad, nómina, operador…"></div>
+    <!-- AQUÍ: más filtros (Año · Mes · Semana · Planta · Gerente · Jefe · Coordinador · Operador · Unidad) -->
+  </aside>
+  <main>
+    <section class="kpis" aria-label="Indicadores">
+      <!-- AQUÍ: un botón .kpi por indicador -->
+      <button class="kpi" type="button" style="--k:var(--navy3)"><span class="l">Indicador 1</span><span class="v">–</span><span class="c">vs periodo anterior</span></button>
+      <button class="kpi" type="button" style="--k:var(--ok)"><span class="l">Indicador 2</span><span class="v">–</span><span class="c">vs periodo anterior</span></button>
+      <button class="kpi" type="button" style="--k:var(--bad)"><span class="l">Indicador 3</span><span class="v">–</span><span class="c">vs periodo anterior</span></button>
+    </section>
+    <div class="card">
+      <nav class="tabs" role="tablist">
+        <button class="tab" role="tab" type="button" aria-selected="true">▦ Resumen</button>
+        <button class="tab" role="tab" type="button" aria-selected="false">☰ Detalle</button>
+      </nav>
+      <div class="chead"><span class="ic" aria-hidden="true">▦</span><h3>Título de la sección</h3><span class="meta">Ordenado por …</span><span class="sp"></span><button class="xbtn" type="button">⬇ Excel</button></div>
+      <div class="tscroll"><table><thead><tr><th>Columna</th><th class="num">Valor</th></tr></thead>
+        <tbody><tr><td>Ejemplo</td><td class="num">0</td></tr></tbody></table></div>
+      <!-- AQUÍ: gráficas (.charts > .chbox > .cv > canvas) y tablas -->
+    </div>
+    <p class="foot">Fuente: … · Corte: …</p>
+  </main>
+</div>
+
+<footer class="foot-bar">LIPU MONTERREY CONFIDENCIAL</footer>
+
+<script>
+"use strict";
+document.getElementById("burger").addEventListener("click", () => document.getElementById("layout").classList.toggle("collapsed"));
+/* AQUÍ: carga de datos. Tablas de Supabase:   const { data } = await LIPU.sb().from("base_viajes").select("*").limit(1000);
+                         Archivos privados:      const blob = await LIPU.download("carpeta/archivo.csv.gz");             */
+</script>
+</body>
+</html>
