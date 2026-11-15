@@ -6,15 +6,15 @@
 <title>Nuevo tablero · Lipu Mty</title>
 <!-- Plantilla de tablero con el tema verde Lipu Monterrey.
      Para un tablero nuevo: copia este archivo a una carpeta nueva (p. ej. alarmas/index.html),
-     cambia el título y llena las secciones marcadas con «AQUÍ». Las rutas ../ asumen que el tablero
-     vive en una carpeta al lado de assets/. -->
+     cambia el título y llena las secciones marcadas con «AQUÍ». Las rutas /lipu-mty-jccs-tableros/assets/…
+     funcionan desde cualquier carpeta del portal. -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap">
-<link rel="stylesheet" href="../assets/tema-lipu/lipu-tema.css">
+<link rel="stylesheet" href="/lipu-mty-jccs-tableros/assets/tema-lipu/lipu-tema.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/dist/umd/supabase.js"></script>
-<script src="../assets/lipu-auth.js"></script>
+<script src="/lipu-mty-jccs-tableros/assets/lipu-auth.js"></script>
 </head>
 <body>
 <div class="loader" id="loader" hidden><div class="spin"></div><div>Cargando…</div></div>
@@ -22,12 +22,12 @@
 
 <header class="top">
   <button class="burger" id="burger" type="button" aria-label="Mostrar u ocultar filtros">☰</button>
-  <img class="logoL" src="../assets/tema-lipu/logo-lipu.png" alt="LiPU by Traxión">
+  <img class="logoL" src="/lipu-mty-jccs-tableros/assets/tema-lipu/logo-lipu.png" alt="LiPU by Traxión">
   <div class="ttl"><h1>Nombre del tablero</h1><small>Lipu Monterrey · Área</small></div>
   <span class="badge"><span class="dot"></span><span id="corteTxt">Datos al –</span></span>
   <button class="tbtn" type="button" id="btnReload">↻ Recargar</button>
   <button class="tbtn green" type="button" id="btnExcel">⬇ Excel</button>
-  <img class="logoR" src="../assets/tema-lipu/logo-derecho.png" alt="">
+  <img class="logoR" src="/lipu-mty-jccs-tableros/assets/tema-lipu/logo-derecho.png" alt="">
 </header>
 
 <div class="layout" id="layout">
