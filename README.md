@@ -22,7 +22,6 @@ Access / Excel (OneDrive) ──► scripts/exportar_cruces.py ──► archivo
 | `cruces/basemap.json` | Base del mapa: municipios y AGEB urbanas (INEGI), carreteras, vías del tren y ríos (Natural Earth). Datos públicos. |
 | `scripts/exportar_cruces.py` | Genera los datos del tablero desde el Access y los Excel, en OneDrive |
 | `scripts/exportar_tabla_access.py` | Exporta cualquier tabla del Access a `.csv.gz` (por defecto TABLA DRIVES HOY) |
-| `dmas/` | Tablero Uso DMAS (vinculación operador-unidad). Lee las tablas `snap_dmas_*` con sesión; se refresca con `select dmas_actualizar();` |
 | `cargas/` | Página de administración: carga a Supabase las tablas exportadas del Access |
 
 ## Actualizar los datos de cruces
