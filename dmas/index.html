@@ -116,6 +116,31 @@ html,body{margin:0;background:var(--bg)}
 @keyframes sp{to{transform:rotate(360deg)}}
 .toast{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:var(--navy);color:#fff;border-radius:8px;padding:8px 14px;font-size:13px;z-index:70}
 .toast[hidden]{display:none}
+.vj{font:inherit;font-size:11.5px;font-weight:700;border:0;border-radius:999px;padding:3px 12px;background:#9aa5b8;color:#fff;cursor:pointer}
+.vj.on{background:var(--info)}
+.vj:hover{filter:brightness(1.1)}
+td.vjc{text-align:center}
+.md{position:fixed;inset:0;background:rgba(13,34,25,.55);z-index:80;display:flex;align-items:center;justify-content:center;padding:16px}
+.md[hidden]{display:none}
+.md-card{background:var(--bg);border-radius:14px;box-shadow:0 10px 40px rgba(0,0,0,.35);width:min(1180px,100%);max-height:94vh;overflow:auto;display:flex;flex-direction:column;gap:12px;padding:14px}
+.md-h{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.md-h h2{margin:0;font-size:16px;flex:1}
+.md-h select{font:inherit;font-size:13px;border:1px solid var(--border);border-radius:8px;padding:5px 8px;background:#fff}
+.md-k{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.md-k div{background:#fff;border:1px solid var(--border);border-radius:var(--r);padding:8px 12px}
+.md-k span{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);font-weight:600}
+.md-k b{font-size:20px}
+.md-g{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:12px}
+.md-box{background:#fff;border:1px solid var(--border);border-radius:var(--r);padding:10px;min-width:0}
+.md-box h3{margin:0 0 6px;font-size:11.5px;text-transform:uppercase;letter-spacing:.05em}
+#vj_map{height:380px;border-radius:8px;z-index:0}
+.tl{position:relative;height:16px;background:var(--line);border-radius:8px;margin-bottom:8px;overflow:hidden}
+.tl i{position:absolute;top:0;bottom:0;min-width:3px}
+.pin{display:flex;align-items:center;justify-content:center;border-radius:999px;border:2px solid #fff;color:#fff;font-weight:700;font-size:11px;width:30px;height:22px;box-shadow:0 1px 4px rgba(0,0,0,.5)}
+.pin.E{background:#15803d}.pin.F{background:#e53e3e}.pin.S{background:#d97706}.pin.P{background:#8b5cf6}
+.st-E{color:#15803d;font-weight:700}.st-F{color:#b42318;font-weight:700}.st-S{color:#b45309;font-weight:700}.st-P{color:#6d28d9;font-weight:700}
+.ld-tb tr.sel td{background:#fff7d6}
+@media (max-width:900px){.md-g{grid-template-columns:minmax(0,1fr)}}
 @media (max-width:900px){.ld-layout{grid-template-columns:minmax(0,1fr)}.ld-side{position:static}}
 @media (max-width:520px){.ld-top h1{font-size:15px}.ld-kpi .kv{font-size:24px}.logoL{height:36px}.logoR{display:none}.ld-right{margin-left:0}}
 @media print{.ld-side,.ld-tabs,.ld-top .ld-right,.ld-burger{display:none!important}.ld-scroll{max-height:none;overflow:visible}}
@@ -208,9 +233,21 @@ html,body{margin:0;background:var(--bg)}
 <div class="ld-foot">LIPU MONTERREY CONFIDENCIAL</div>
 </div>
 
+<div class="md" id="md" hidden role="dialog" aria-label="Viajes recientes">
+  <div class="md-card">
+    <div class="md-h"><h2 id="vj_t">Viajes recientes</h2><select id="vj_rng" aria-label="Rango"><option value="12">Últimas 12 horas</option><option value="all">Ventana completa</option></select><button type="button" class="ld-btn" id="vj_x">⬇ Excel</button><button type="button" class="ld-btn" id="vj_c">Cerrar</button></div>
+    <div class="md-k"><div><span>Unidad</span><b id="vj_u">—</b></div><div><span>Efectivos</span><b id="vj_e">—</b></div><div><span>Fallidos</span><b id="vj_f">—</b></div><div><span>Sin logueo</span><b id="vj_s">—</b></div><div><span>Pánicos</span><b id="vj_p">—</b></div></div>
+    <div class="md-g">
+      <div class="md-box"><h3 id="vj_mt">Mapa | &gt; 2 km</h3><div class="tl" id="vj_tl"></div><div id="vj_map"></div></div>
+      <div class="md-box"><h3>Detalle de viajes</h3><div class="ld-scroll" style="max-height:440px"><table class="ld-tb" id="vj_tb"><thead><tr><th>#</th><th>Inicio</th><th>Fin</th><th class="num">Duración</th><th class="num">Km</th><th>Código DMAS</th><th>Estatus</th></tr></thead><tbody></tbody></table></div></div>
+    </div>
+  </div>
+</div>
 <div class="overlay" id="ov" hidden><div class="ov-card" id="ov_card"></div></div>
 <div class="toast" id="toast" hidden></div>
 
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/dist/umd/supabase.js"></script>
@@ -227,7 +264,7 @@ const CONFIG = {
   },
   tablas: {
     corte: 'snap_dmas_corte', resumen: 'snap_dmas_resumen', unidad: 'snap_dmas_unidad',
-    dia: 'snap_dmas_unidad_dia', tendencia: 'snap_dmas_tendencia', sinasig: 'snap_dmas_sin_asignacion'
+    dia: 'snap_dmas_unidad_dia', viaje: 'snap_dmas_viaje', tendencia: 'snap_dmas_tendencia', sinasig: 'snap_dmas_sin_asignacion'
   }
 };
 
@@ -487,14 +524,14 @@ function renderMatriz(visibles, sinEst) {
   };
   const rows = ordena(visibles, S.sort.mx, get);
   S.lastMx = rows;
-  const cols = [['unidad', 'Unidad'], ['viajes', 'Viajes', 'num'], ['planta', 'Planta'], ['zona', 'Zona'], ['gerente', 'Gerente'], ['jefe', 'Jefe'], ['coord', 'Coordinador']]
+  const cols = [['unidad', 'Unidad'], ['viajes', 'Viajes', 'ctr'], ['planta', 'Planta'], ['zona', 'Zona'], ['gerente', 'Gerente'], ['jefe', 'Jefe'], ['coord', 'Coordinador']]
     .concat(F.map(f => ['d:' + f, lblDia(f), 'ctr'])).concat([['total', 'Total', 'ctr']]);
   $('t_mx').querySelector('thead').innerHTML = '<tr>' + cols.map((c, i) => '<th data-sort="' + c[0] + '" class="' + (c[2] || '') + (i === 0 ? ' sticky' : '') + (S.sort.mx.k === c[0] ? (S.sort.mx.d > 0 ? ' asc' : ' desc') : '') + '">' + esc(c[1]) + '</th>').join('') + '</tr>';
   $('t_mx').querySelector('tbody').innerHTML = rows.length ? rows.map(u => {
     const m = S.byUnit.get(u.unidad) || new Map();
     const celdas = F.map(f => { const r = m.get(f); const p = r ? num(r.pct) : null; return p === null ? '<td class="sd">S/D</td>' : '<td class="pct e-' + estKey(estatusDe(p)) + '">' + fPct(p) + '</td>'; }).join('');
     const tp = num(u.pct);
-    return '<tr><td class="sticky"><b>' + esc(u.unidad) + '</b></td><td class="num">' + fInt(u.viajes) + '</td><td>' + esc(u.planta_d) + '</td><td>' + esc(u.zona_d || '–') + '</td><td>' + esc(u.gerente_d) + '</td><td>' + esc(u.jefe_d || '–') + '</td><td>' + esc(u.coord_d) + '</td>' + celdas +
+    return '<tr><td class="sticky"><b>' + esc(u.unidad) + '</b></td><td class="vjc"><button type="button" class="vj' + (u.viajes_12h > 0 ? ' on' : '') + '" data-u="' + esc(u.unidad) + '" title="' + fInt(u.viajes) + ' viajes en la ventana">Viajes</button></td><td>' + esc(u.planta_d) + '</td><td>' + esc(u.zona_d || '–') + '</td><td>' + esc(u.gerente_d) + '</td><td>' + esc(u.jefe_d || '–') + '</td><td>' + esc(u.coord_d) + '</td>' + celdas +
       (tp === null ? '<td class="sd tot">S/D</td>' : '<td class="pct tot e-' + estKey(estatusDe(tp)) + '">' + fPct(tp) + '</td>') + '</tr>';
   }).join('') : '<tr><td class="empty" colspan="' + cols.length + '">Sin unidades con estos filtros.</td></tr>';
   $('c_mx').textContent = fInt(rows.length) + ' unidades';
@@ -560,6 +597,65 @@ function aoaMatriz() {
 function aoaImpacto() { return [['Unidad', '% DMAS', 'Manejo', 'Fallido', 'Sin logueo', 'No efectivo', 'Impacto']].concat(S.lastImp.map(r => [r.u.unidad, r.pct === null ? 'N/A' : +r.pct.toFixed(2), hhmm(r.manejo), hhmm(r.fall), hhmm(r.sin), hhmm(r.noef), r.imp[0]])); }
 function aoaSin() { return [['Unidad', 'Planta / grupo origen', 'Días actividad', '% Logueo', 'Manejo', 'Efectivo', 'Fallido', 'Sin logueo', 'Km', 'Motivo']].concat(S.lastSin.map(r => [r.unidad, r.grupo_origen || '', r.dias_actividad, num(r.pct) === null ? 'N/A' : +(+r.pct).toFixed(2), hhmm(r.manejo), hhmm(r.min_efectivo), hhmm(r.min_fallido), hhmm(r.min_sin_logueo), num(r.km) === null ? '' : +(+r.km).toFixed(2), r.motivo || ''])); }
 
+/* ===== Modal de viajes con mapa (últimas 12 h del corte; coordenadas de inicio y fin) ===== */
+const EST_TXT = {E: 'Efectivo', F: 'Fallido', S: 'Sin logueo', P: 'Pánico'};
+const EST_COL = {E: '#15803d', F: '#e53e3e', S: '#d97706', P: '#8b5cf6'};
+const V = {map: null, rows: [], unidad: '', markers: []};
+const tms = x => new Date(String(x).replace(' ', 'T')).getTime();
+const fDM = x => { if (!x) return '–'; const s = String(x).replace('T', ' '); return s.slice(8, 10) + '/' + s.slice(5, 7) + ', ' + s.slice(11, 16); };
+function viajesEnRango() {
+  const corte = tms(S.raw.corte.corte), modo = $('vj_rng').value;
+  return modo === 'all' ? V.all : V.all.filter(r => tms(r.inicio) >= corte - 12 * 3600000);
+}
+function dibujaViajes() {
+  const rows = viajesEnRango(), cnt = {E: 0, F: 0, S: 0, P: 0};
+  rows.forEach(r => { cnt[r.estado]++; });
+  V.rows = rows;
+  $('vj_u').textContent = V.unidad; $('vj_e').textContent = fInt(cnt.E); $('vj_f').textContent = fInt(cnt.F); $('vj_s').textContent = fInt(cnt.S); $('vj_p').textContent = fInt(cnt.P);
+  $('vj_mt').textContent = ($('vj_rng').value === 'all' ? 'Ventana completa' : 'Últimas 12 horas') + ' | > 2 km';
+  // línea de tiempo
+  const corte = tms(S.raw.corte.corte), ini = $('vj_rng').value === 'all' ? (rows.length ? tms(rows[0].inicio) : corte - 12 * 3600000) : corte - 12 * 3600000, span = Math.max(corte - ini, 1);
+  $('vj_tl').innerHTML = rows.map(r => { const a = (tms(r.inicio) - ini) / span * 100, w = Math.max((tms(r.fin || r.inicio) - tms(r.inicio)) / span * 100, .4); return '<i style="left:' + a.toFixed(2) + '%;width:' + w.toFixed(2) + '%;background:' + EST_COL[r.estado] + '"></i>'; }).join('');
+  // tabla
+  $('vj_tb').querySelector('tbody').innerHTML = rows.length ? rows.map((r, i) => {
+    const dur = r.fin ? Math.round((tms(r.fin) - tms(r.inicio)) / 60000) : null;
+    return '<tr data-i="' + i + '" style="cursor:pointer"><td>' + (i + 1) + '</td><td>' + fDM(r.inicio) + '</td><td>' + fDM(r.fin) + '</td><td class="num">' + hhmm(dur) + '</td><td class="num">' + fKm(r.km) + '</td><td>' + esc(r.codigo_dmas || '–') + '</td><td class="st-' + r.estado + '">' + EST_TXT[r.estado] + '</td></tr>';
+  }).join('') : '<tr><td class="empty" colspan="7">Sin viajes mayores a 2 km en este rango.</td></tr>';
+  // mapa
+  if (typeof L === 'undefined') { $('vj_map').innerHTML = '<div class="empty">No se pudo cargar el mapa. Revisa tu conexión.</div>'; return; }
+  if (V.map) { V.map.remove(); V.map = null; }
+  V.map = L.map('vj_map', {scrollWheelZoom: true});
+  L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {maxZoom: 17, attribution: 'Map data: © OpenStreetMap contributors, SRTM | Map style: © OpenTopoMap (CC-BY-SA)'}).addTo(V.map);
+  V.markers = []; const pts = [];
+  rows.forEach((r, i) => {
+    const a = [+r.lat_ini, +r.lon_ini], b = [+r.lat_fin, +r.lon_fin];
+    const okA = isFinite(a[0]) && isFinite(a[1]) && (a[0] || a[1]), okB = isFinite(b[0]) && isFinite(b[1]) && (b[0] || b[1]);
+    if (okA && okB) L.polyline([a, b], {color: EST_COL[r.estado], weight: 3, opacity: .7, dashArray: '6 6'}).addTo(V.map);
+    if (okB) { L.circleMarker(b, {radius: 4, color: '#fff', weight: 1, fillColor: EST_COL[r.estado], fillOpacity: 1}).addTo(V.map); pts.push(b); }
+    let m = null;
+    if (okA) {
+      m = L.marker(a, {icon: L.divIcon({className: '', html: '<div class="pin ' + r.estado + '">' + (i + 1) + r.estado + '</div>', iconSize: [30, 22], iconAnchor: [15, 11]})}).addTo(V.map);
+      m.bindPopup('<b>' + (i + 1) + ' · ' + EST_TXT[r.estado] + '</b><br>Inicio: ' + fDM(r.inicio) + '<br>' + esc(r.ubic_ini || '') + '<br>Fin: ' + fDM(r.fin) + '<br>' + esc(r.ubic_fin || '') + '<br>Km: ' + fKm(r.km));
+      pts.push(a);
+    }
+    V.markers[i] = m;
+  });
+  if (pts.length > 1) V.map.fitBounds(pts, {padding: [30, 30], maxZoom: 14}); else if (pts.length === 1) V.map.setView(pts[0], 12); else V.map.setView([25.67, -100.31], 8);
+  setTimeout(() => { if (V.map) V.map.invalidateSize(); }, 150);
+}
+async function abreViajes(unidad) {
+  V.unidad = unidad; V.all = []; $('vj_t').textContent = 'Viajes recientes | Unidad ' + unidad;
+  $('vj_rng').value = '12'; $('md').hidden = false; $('vj_tb').querySelector('tbody').innerHTML = '<tr><td class="empty" colspan="7">Cargando…</td></tr>';
+  try {
+    const {data, error} = await conTiempo(LIPU.sb().from(CONFIG.tablas.viaje).select('*').eq('unidad', unidad).order('inicio'));
+    if (error) throw new Error(error.message);
+    V.all = data;
+    dibujaViajes();
+  } catch (e) { $('vj_tb').querySelector('tbody').innerHTML = '<tr><td class="empty" colspan="7">No se pudieron cargar los viajes: ' + esc(e.message) + '</td></tr>'; }
+}
+function cierraViajes() { $('md').hidden = true; if (V.map) { V.map.remove(); V.map = null; } }
+function aoaViajes() { return [['Unidad', '#', 'Inicio', 'Fin', 'Duración', 'Km', 'Código DMAS', 'Estatus', 'Ubicación inicial', 'Ubicación final', 'Lat inicial', 'Lon inicial', 'Lat final', 'Lon final']].concat(V.rows.map((r, i) => [V.unidad, i + 1, fDM(r.inicio), fDM(r.fin), hhmm(r.fin ? Math.round((tms(r.fin) - tms(r.inicio)) / 60000) : null), num(r.km) === null ? '' : +(+r.km).toFixed(2), r.codigo_dmas || '', EST_TXT[r.estado], r.ubic_ini || '', r.ubic_fin || '', r.lat_ini, r.lon_ini, r.lat_fin, r.lon_fin])); }
+
 /* ===== Eventos ===== */
 function cambiaTab(t) {
   S.tab = t;
@@ -585,6 +681,12 @@ function init() {
   $('f_reset').onclick = () => { S.f = {ger: '', jefe: '', coord: '', planta: '', zona: '', est: '', q: '', cri3: false}; render(); };
   $('btn_cri3').onclick = () => { S.f.cri3 = !S.f.cri3; render(); };
   document.querySelectorAll('.ld-kpi[data-est]').forEach(b => { b.onclick = () => { S.f.est = S.f.est === b.dataset.est ? '' : b.dataset.est; render(); }; });
+  $('t_mx').querySelector('tbody').onclick = e => { const b = e.target.closest('button.vj'); if (b) abreViajes(b.dataset.u); };
+  $('vj_c').onclick = cierraViajes; $('vj_rng').onchange = dibujaViajes;
+  $('vj_x').onclick = () => exporta('UsoDMAS_Viajes_' + V.unidad, 'Viajes', aoaViajes());
+  $('md').onclick = e => { if (e.target === $('md')) cierraViajes(); };
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('md').hidden) cierraViajes(); });
+  $('vj_tb').querySelector('tbody').onclick = e => { const tr = e.target.closest('tr[data-i]'); if (!tr || !V.map) return; const m = V.markers[+tr.dataset.i]; document.querySelectorAll('#vj_tb tr.sel').forEach(x => x.classList.remove('sel')); tr.classList.add('sel'); if (m) { V.map.setView(m.getLatLng(), Math.max(V.map.getZoom(), 12)); m.openPopup(); } };
   $('t_mx').querySelector('thead').onclick = e => { const th = e.target.closest('th[data-sort]'); if (th) ordenaClick(th, 'mx', th.dataset.sort); };
   $('t_imp').querySelector('thead').onclick = e => { const th = e.target.closest('th[data-sort]'); if (th) ordenaClick(th, 'imp', th.dataset.sort); };
   $('t_sin').querySelector('thead').onclick = e => { const th = e.target.closest('th[data-sort]'); if (th) ordenaClick(th, 'sin', th.dataset.sort); };
