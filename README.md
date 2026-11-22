@@ -21,8 +21,6 @@ Access / Excel (OneDrive) ──► scripts/exportar_cruces.py ──► archivo
 | `cruces/` | Tablero de cruces ferroviarios (ejecutivo, no altos, semanal con días comparables, mapa, por revisar, detalle) |
 | `cruces/basemap.json` | Base del mapa: municipios y AGEB urbanas (INEGI), carreteras, vías del tren y ríos (Natural Earth). Datos públicos. |
 | `scripts/exportar_cruces.py` | Genera los datos del tablero desde el Access y los Excel, en OneDrive |
-| `scripts/exportar_tabla_access.py` | Exporta cualquier tabla del Access a `.csv.gz` (por defecto TABLA DRIVES HOY) |
-| `cargas/` | Página de administración: carga a Supabase las tablas exportadas del Access |
 
 ## Actualizar los datos de cruces
 
@@ -32,17 +30,9 @@ Access / Excel (OneDrive) ──► scripts/exportar_cruces.py ──► archivo
 
 Requisitos del script (una sola vez): `py -m pip install pandas pyodbc openpyxl` y el controlador *Microsoft Access Database Engine* de 64 bits.
 
-## Tablas en Supabase (proyecto prueba_desarrollos)
+## Datos de viajes, eventos y demás desarrollos
 
-| Tabla | Origen | Regla de carga |
-|---|---|---|
-| `base_viajes_hoy` | TABLA DRIVES HOY (CARGAR BASES PRINCIPALES.accdb) | Reemplazo completo en cada carga (solo lo que va del día) |
-| `base_viajes`, `base_eventos` | TABLA DE VIAJES TL / TABLA DE EVENTOS TL | Ventana de 62 días a detalle (página Cargas). Lo anterior pasa a `resumen_viajes_dia` / `resumen_eventos_dia`. `num_economico` = «Núm Económico», `id_viaje` = «Núm Eco» |
-| `catalogo_operadores`, `catalogo_vehiculos`, `catalogo_eventos` | Catálogos | Pendiente de actualizar |
-
-Para actualizar (carga diferencial): `py exportar_tabla_access.py` consulta en Supabase el último día cargado y exporta solo desde ese día menos 2 de repaso (DRIVES HOY siempre completa; `completa` como argumento fuerza los 62 días) → portal → **Cargas de datos** → en cada tabla «Cargar archivo» → «Confirmar carga». Viajes y eventos reemplazan los días del archivo y cierran la ventana de 62 días.
-
-**Llaves comunes:** `num_economico` = número de unidad («Núm Económico» del Access) · `nomina` / `id_colaborador` = nómina del operador · planta = grupo de vehículos.
+Ya no se cargan desde este portal. Los desarrollos operativos (Uso DMAS, Descansos, Score de seguridad, Ralentí, etc.) se calculan desde los Access con el ETL local del proyecto TABLEROS LIPU y publican snapshots `snap_*` en Supabase. La página «Cargas» se retiró el 21-nov-2026.
 
 ## Usuarios
 
